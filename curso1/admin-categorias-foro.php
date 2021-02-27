@@ -1,0 +1,124 @@
+<?php session_start();
+if ($_SESSION['conectado'] == false)
+{
+   header ("Location: ../conectar.php");
+   exit;
+}
+if ($_SESSION['identificador'] !== session_id())
+{
+   header ("Location: ../desconectar.php");
+   exit; 
+}
+if ($_SESSION['nivel_usuario']==0)
+{
+	header ("Location: ../desconectar.php");
+  	exit;
+}
+require('../funcions.php'); 
+$nome="administracion foro";
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <title><?php echo ucfirst($nome) . " de " . $_SESSION['nome_curso']; ?></title>
+  <meta charset="utf-8">
+  <link rel="icon" href="favicon.ico">
+  <link rel="shortcut icon" href="favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="../bootstrap/bootstrap.min.css" rel="stylesheet" type="text/css">
+  <link href="../bootstrap4-glyphicons/css/bootstrap-glyphicons.min.css" rel="stylesheet" type="text/css" />
+  <script src="../jquery/jquery.min.js"></script>
+  <script src="../popper/popper.min.js"></script>
+  <script src="../bootstrap/bootstrap.min.js"></script>
+  <link href="../estilo.css" rel="stylesheet" type="text/css" />
+<script>
+$(document).ready(function(){
+  $("footer a[href='#arriba']").on('click', function(event) {
+  if (this.hash !== "") {
+    event.preventDefault();
+    var hash = this.hash;
+    $('html, body').animate({
+      scrollTop: $(hash).offset().top
+    }, 500, function(){
+      window.location.hash = hash;
+      });
+    }
+  });
+})
+</script>
+</head>
+<body id="arriba">
+<?php
+include('cabeceira2.php'); 
+include('menu2.php'); 
+?>
+  <div class="row" style="margin-top:40px;">
+     <div class="col-sm-2">
+     </div> 
+    <div class="col-sm-8">
+<?php
+if($_SESSION['nivel_usuario'] !=2 )
+{
+//en caso de no tener el nivel 2
+echo "<p class='text-center text-danger'><strong>Acceso restringido</strong></p>";
+echo "<p class='text-center'>No tienes el permiso de acceso necesario</p>";
+}
+else {
+echo "<h1 class='text-center'><strong>Administraci&oacute;n de categor&iacute;as del foro</strong></h1>";
+
+//se arma la consulta para los usuarios del curso
+$sql="SELECT * 
+	  FROM curso" . $_SESSION['curso'] . "_foro_categorias";
+
+//se ejecuta la consulta y se trata el posible error
+$resultado = mysqli_query($conexion, $sql ) or die(mysqli_error($conexion));
+
+//se recupera una fila de resultado como matriz asociativa
+$fila = mysqli_fetch_assoc($resultado);
+
+//la variable cuenta el número de filas de resultado
+$total_filas = mysqli_num_rows($resultado);
+
+echo "<p><a href='crear-categoria-foro.php' title='Crear una nueva categor&iacute;a' class='btn btn-success'>Crear nueva categor&iacute;a</a></p>";
+
+echo "<div class='table-responsive'>";
+echo "<table class='table table-striped'>
+        <tr>
+		<th>id</th>
+		<th>nome</th>
+		<th>Descripci&oacute;n</th>
+		<th>Modificar</th>
+		<th>Borrar</th>
+		</tr>";
+		
+       /* se presenta el listado con todas las filas devueltas en la consulta
+	   usando el bucle do para presentar el primer registro */
+	    do {  
+		
+	    echo "
+		<tr>
+		<td valign='top'>" . $fila['id_categoria'] . "</td>
+		<td valign='top'>" . $fila['nome_categoria'] . "</td>
+		<td valign='top'>" . $fila['descricion_categoria'] . "</td>
+		<td valign='top'><a href='modificar-categoria-foro.php?id=" . $fila['id_categoria'] . "' title='Modificar' class='btn btn-success'>Modificar</a></td>
+		<td valign='top'><a href='eliminar-categoria-foro.php?id=" . $fila['id_categoria'] . "' title='Borrar' class='btn btn-danger'>Borrar</a></td>
+		</tr>";
+			 
+		   } while ($fila = mysqli_fetch_assoc($resultado));
+
+//se presenta el total de resultados y se cierra la tabla y el div
+echo"
+	<tr><td colspan='4' class='dereita'><strong>Total categor&iacute;as:</strong></td><td><span class='badge badge-secondary'>" . $total_filas . "</span></td></tr>
+	</table> </div>";
+
+echo "<p class='text-center'><a class='btn btn-primary' href='admin.php'>Zona de Administraci&oacute;n</a></p>";
+}
+?>
+      <br>
+     <div class="col-sm-2">
+     </div>   
+  </div>
+</div>
+<?php include('pe2.php'); ?>
+</body>
+</html>
